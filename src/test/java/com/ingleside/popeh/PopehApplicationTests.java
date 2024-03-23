@@ -10,4 +10,10 @@ class PopehApplicationTests {
 	void contextLoads() {
 	}
 
+
+	@Test
+	void test() {
+
+	}
+
 }
