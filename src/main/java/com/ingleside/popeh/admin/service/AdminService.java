@@ -3,45 +3,29 @@ package com.ingleside.popeh.admin.service;
 import com.ingleside.popeh.admin.dto.AdminCreationsRequest;
 import com.ingleside.popeh.admin.dto.AdminInformationResponse;
 import com.ingleside.popeh.admin.entity.Admin;
-import com.ingleside.popeh.admin.exception.AdminPhoneNumberAlreadyExistsException;
 import com.ingleside.popeh.admin.exception.AdminUsenameAlreadyExistsException;
+import com.ingleside.popeh.admin.mapper.AdminMapper;
 import com.ingleside.popeh.admin.repository.AdminRepository;
+import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
-
-import java.time.LocalDateTime;
 
 @Service
 @AllArgsConstructor
 public class AdminService implements AdminServiceContract {
 
-    private final AdminRepository adminRepository;
+  private final AdminRepository adminRepository;
+  private final AdminMapper adminMapper;
 
-    @Override
-    public AdminInformationResponse create(AdminCreationsRequest adminCreationsRequest) {
-        if (adminRepository.existsByUsername(adminCreationsRequest.username()))
-            throw new AdminUsenameAlreadyExistsException();
+  @Override
+  public AdminInformationResponse create(AdminCreationsRequest adminCreationsRequest) {
+    if (adminRepository.existsByUsername(adminCreationsRequest.username()))
+      throw new AdminUsenameAlreadyExistsException();
 
-        if (adminRepository.existsByPhoneNumber(adminCreationsRequest.phoneNumber()))
-            throw new AdminPhoneNumberAlreadyExistsException();
-        var savedAdmin = adminRepository.save(Admin.builder()
-                .firstName(adminCreationsRequest.firstName())
-                .lastName(adminCreationsRequest.lastName())
-                .password(adminCreationsRequest.password())
-                .username(adminCreationsRequest.username())
-                .phoneNumber(adminCreationsRequest.phoneNumber())
-                .createdAt(LocalDateTime.now())
-                .build());
+    var savableAdmin = adminMapper.mapToAdmin(adminCreationsRequest);
 
+    var savedAdmin = adminRepository.save(savableAdmin);
 
-        return new AdminInformationResponse(savedAdmin.getId(),
-                savedAdmin.getFirstName(),
-                savedAdmin.getLastName(),
-                savedAdmin.getUsername(),
-                savedAdmin.getPassword(),
-                savedAdmin.getPhoneNumber(),
-                savedAdmin.getCreatedAt());
-    }
-
-
+    return adminMapper.mapToAdminInformationResponse(savedAdmin);
+  }
 }
